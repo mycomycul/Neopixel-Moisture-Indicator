@@ -1,19 +1,21 @@
 /*Simple first build of plant soil moisture indicator. 
-Red transtions from brightest to off as it approaches the drythreshold indicating low moisture. 
+Red transtions from brightest to off as it approaches the dry threshold indicating low moisture. 
 Green transitions from off to brightest at the center between the wet and dry threshold and then back to off at the wet threshold to indicate the ideal zone. 
 Blue transitions to on starting from the wet threshold indicating very wet conditions*/
 
+#include 'Adafruit_NeoPixel.h'
 #include <Adafruit_NeoPixel.h>
+
 
 #define PIN 2	 // pin Neopixel is attached to
 #define SENSOR A0		//input pin for Potentiometer
 #define NUMPIXELS 1 // number of neopixels in strip
 
 /*THese values adjust what is considered wet or dry*/
-#define dryThreshold = 50; //below this value, begin alerting dry, turn red;
-#define wetThreshold = 200; //above this value, begin alerting wet,turn blue;
-#define thresholdCenter = (dryThreshold + wetThreshold)/2; //Brightest Green point
-#define crossFade = 20; //how much blue and red should fade in to green
+#define dryThreshold 50 //below this value, begin alerting dry, turn red;
+#define wetThreshold 200 //above this value, begin alerting wet,turn blue;
+#define thresholdCenter (dryThreshold + wetThreshold)/2 //Brightest Green point
+#define crossFade 20 //how much blue and red should fade in to green
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 int delayval = 100; // timing delay in milliseconds
@@ -30,7 +32,7 @@ int transitionValue = 0;
 void setup() {
   // Initialize the NeoPixel library.
   pixels.begin();
-  pinMode(DIAL,INPUT);
+  pinMode(SENSOR,INPUT);
 }
 
 void loop() {
@@ -47,15 +49,14 @@ void loop() {
     delay(delayval); 
 }
 
+//Determines values based on the reported on the sensor pin
 void setColor(){
-
-  
     //red value greater towards higher resistance/drier
-redColor = (transitionValue <= dryThreshold + crossFade && transitionValue >= 0 )? map(transitionValue,0,dryThreshold + crossFade,255,0) : 0;
+redColor = ((transitionValue <= dryThreshold + crossFade) && (transitionValue >= 0 ))? map(transitionValue,0,dryThreshold + crossFade,255,0) : 0;
   //blue value greater towards lower resistance/wetter
 blueColor = (transitionValue >= wetThreshold - crossFade && transitionValue <= 255)? map(transitionValue,wetThreshold - crossFade,255,0,255):0; 
   
-  //green value towrds middle resistance
+  //green increases towards middle resistance
   if(transitionValue >= dryThreshold && transitionValue <= thresholdCenter)
   {
   greenColor = map(transitionValue,dryThreshold,thresholdCenter,0,255);
